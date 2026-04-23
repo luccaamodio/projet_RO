@@ -51,11 +51,11 @@ function generateInstance(n::Int64, density::Float64)
     views = []
     views = Matrix{Int}(zeros(4, n))
     for i in 1:n
-        # Right side count line
+        # Left side count line
         views[1, i] = countCharacter(t, n, 1, i, 1, 0)
         # Bottom side count line
         views[2, i] = countCharacter(t, n, i, 1, 0, 1)
-        # Left side count line
+        # Right side count line
         views[3, i] = countCharacter(t, n, n, i, -1, 0)
         # Up side count line
         views[4, i] = countCharacter(t, n, i, n, 0, -1)

@@ -6,12 +6,161 @@ include("generation.jl")
 TOL = 0.00001
 
 """
+Returns a list with the positions viewed directly and another with the ones viewed through a mirror
+"""
+function positionsViewed(t::Matrix{Char}, n::Int64, x::Int64, y::Int64, dx::Int64, dy::Int64)
+    reflected = false
+    direct_positions = Vector{Tuple{Int64, Int64}}()
+    reflected_positions = Vector{Tuple{Int64, Int64}}()
+    while 1 <= x <= n && 1 <= y <= n
+        if t[x, y] == 'b'
+            reflected = true
+            temp = dx
+            dx = dy
+            dy = temp
+        elseif t[x, y] == 'c'
+            reflected = true
+            temp = dx
+            dx = -dy
+            dy = -temp
+            end
+        else
+            if reflected
+                push!(reflected_positions, (x, y))
+            else
+                push!(direct_positions, (x, y))
+            end
+        end
+        x += dx
+        y += dy
+    end
+
+    return direct_positions, reflected_positions
+
+end
+
+"""
 Solve an instance with CPLEX
 """
-function cplexSolve()
+function cplexSolve(t::Matrix{Char}, views::Matrix{Int64})
 
     # Create the model
     m = Model(with_optimizer(CPLEX.Optimizer))
+
+    n = size(t, 2)
+
+    # x[i, j, 1] = 1 if cell (i, j) is a ghost
+    # x[i, j, 2] = 1 if cell (i, j) is a vampire
+    # x[i, j, 3] = 1 if cell (i, j) is a monster
+    @variable(m, x[1:n, 1:n, 1:3], Bin)
+
+    # les positions des miroir ne peuvent avoir aucune valeur
+    # toutes les positions non miroir ne peuvent avoir qu'une valeur
+    for l in 1:n
+        for c in 1:n
+            if t[l, c] == 'b' || t[l, c] == 'c'
+                @constraint(m, [k in 1:3], x[l,c,k] == 0)
+            else
+                @constraint(m, sum(x[l, c, i] for i in 1:3) == 1)
+            end
+        end
+    end
+
+    # The number of views has to be compatible with the solution
+    # To verify that, we are going to create a Matrix of coeficients representing
+    # the visibility of a cell. It has an element representing "directly visible" and
+    # another representing "visible by mirror"
+
+    # C[i, j, 1] is direct visibility of the (i, j) cell
+    # C[i, j, 2] is visibility by mirror of the (i, j) cell
+
+    # These visibilities can be greater than 1 if the cell is crossed twice
+
+    # Todo: Optimize the code using fewer elements of C. Maybe get only those from
+    # the visibility lists
+
+    # For the Left side counts
+    for i in 1:n
+        C = Matrix{Int64}(zeros(n, n, 2))
+        dir_pos, ref_pos = positionsViewed(t, n, 1, i, 1, 0)
+        for dp in dir_pos
+            (l,c) = dp
+            C[l,c,1] += 1
+        end
+        for rp in ref_pos
+            (l,c) = rp
+            C[l,c,2] += 1
+        end
+
+        @constraint(m,
+            sum((x[l,c,1] + x[l,c,3]) * C[l,c,2] +
+                (x[l,c,2] + x[l,c,3]) * C[l,c,1]
+                for l in 1:n, c in 1:n)
+            == views[1, i]
+        )
+    end
+
+    # For the Bottom side counts
+    for i in 1:n
+        C = Matrix{Int64}(zeros(n, n, 2))
+        dir_pos, ref_pos = positionsViewed(t, n, i, 1, 0, 1)
+        for dp in dir_pos
+            (l,c) = dp
+            C[l,c,1] += 1
+        end
+        for rp in ref_pos
+            (l,c) = rp
+            C[l,c,2] += 1
+        end
+        @constraint(m,
+            sum((x[l,c,1] + x[l,c,3]) * C[l,c,2] +
+                (x[l,c,2] + x[l,c,3]) * C[l,c,1]
+                for l in 1:n, c in 1:n)
+            == views[2, i]
+        )
+    end
+        
+    # For the Right side counts
+    for i in 1:n
+        C = Matrix{Int64}(zeros(n, n, 2))
+        dir_pos, ref_pos = positionsViewed(t, n, n, i, -1, 0)
+        for dp in dir_pos
+            (l,c) = dp
+            C[l,c,1] += 1
+        end
+        for rp in ref_pos
+            (l,c) = rp
+            C[l,c,2] += 1
+        end
+
+        @constraint(m,
+            sum((x[l,c,1] + x[l,c,3]) * C[l,c,2] +
+                (x[l,c,2] + x[l,c,3]) * C[l,c,1]
+                for l in 1:n, c in 1:n)
+            == views[3, i]
+        )
+    end
+        
+    # For the Up side counts
+    for i in 1:n
+        C = Matrix{Int64}(zeros(n, n, 2))
+        dir_pos, ref_pos = positionsViewed(t, n, i, n, 0, -1)
+        for dp in dir_pos
+            (l,c) = dp
+            C[l,c,1] += 1
+        end
+        for rp in ref_pos
+            (l,c) = rp
+            C[l,c,2] += 1
+        end
+        
+        @constraint(m,
+            sum((x[l,c,1] + x[l,c,3]) * C[l,c,2] +
+                (x[l,c,2] + x[l,c,3]) * C[l,c,1]
+                for l in 1:n, c in 1:n)
+            == views[4, i]
+        )
+    end
 
     # TODO
     println("In file resolution.jl, in method cplexSolve(), TODO: fix input and output, define the model")
