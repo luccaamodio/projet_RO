@@ -5,6 +5,49 @@ using Plots
 import GR
 
 """
+Save a grid in a text file
+
+Argument
+- t: 2-dimensional array of size n*n
+- views: 2-dimensional array of size 4*n
+- outputFile: path of the output file
+"""
+function saveInstance(t::Matrix{Char}, views::Matrix{Int64}, outputFile::String)
+
+    n = size(t, 1)
+
+    # Open the output file
+    writer = open(outputFile, "w")
+
+    # For each cell (l, c) of the grid
+    for l in 1:n
+        for c in 1:n
+            print(writer, t[l, c])
+            if c != n
+                print(writer, ",")
+            else
+                println(writer, "")
+            end
+        end
+    end
+
+    # For each cell (4, c) of the grid
+    for l in 1:4
+        for c in 1:n
+            print(writer, views[l, c])
+            if c != n
+                print(writer, ",")
+            else
+                println(writer, "")
+            end
+        end
+    end
+
+    close(writer)
+    
+end 
+
+"""
 Read an instance from an input file
 
 - Argument:
@@ -18,14 +61,39 @@ function readInputFile(inputFile::String)
     data = readlines(datafile)
     close(datafile)
 
+    n = length(split(data[1], ","))
+    t = Matrix{Char}(undef, n, n)
+    views = Matrix{Int64}(zeros(4, n))
+
+    println(n)
+
+    lineNb = 1
     # For each line of the input file
-    for line in data
+    for line in data[1:n]
+        println(lineNb)
 
-        # TODO
-        println("In file io.jl, in method readInputFile(), TODO: read a line of the input file")
+        lineSplit = split(line, ",")
 
+        for colNb in 1:n
+            t[lineNb, colNb] = lineSplit[colNb][1]
+        end
+    
+        lineNb += 1
     end
 
+    lineNb = 1
+    for line in data[n+1:n+4]
+
+        lineSplit = split(line, ",")
+
+        for colNb in 1:n
+            views[lineNb, colNb] = parse(Int64, lineSplit[colNb])
+        end
+    
+        lineNb += 1
+    end
+
+    return t, views
 end
 
 
