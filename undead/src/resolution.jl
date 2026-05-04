@@ -1,5 +1,6 @@
 # This file contains methods to solve an instance (heuristically or with CPLEX)
 using CPLEX
+import MathOptInterface as MOI
 
 include("generation.jl")
 
@@ -23,7 +24,6 @@ function positionsViewed(t::Matrix{Char}, n::Int64, x::Int64, y::Int64, dx::Int6
             temp = dx
             dx = -dy
             dy = -temp
-            end
         else
             if reflected
                 push!(reflected_positions, (x, y))
@@ -45,7 +45,7 @@ Solve an instance with CPLEX
 function cplexSolve(t::Matrix{Char}, views::Matrix{Int64})
 
     # Create the model
-    m = Model(with_optimizer(CPLEX.Optimizer))
+    m = Model(CPLEX.Optimizer)
 
     n = size(t, 2)
 
@@ -56,6 +56,8 @@ function cplexSolve(t::Matrix{Char}, views::Matrix{Int64})
 
     # les positions des miroir ne peuvent avoir aucune valeur
     # toutes les positions non miroir ne peuvent avoir qu'une valeur
+    n_mir = 1
+    n_cell = 1
     for l in 1:n
         for c in 1:n
             if t[l, c] == 'b' || t[l, c] == 'c'
@@ -81,7 +83,7 @@ function cplexSolve(t::Matrix{Char}, views::Matrix{Int64})
 
     # For the Left side counts
     for i in 1:n
-        C = Matrix{Int64}(zeros(n, n, 2))
+        C = zeros(Int64, n, n, 2)
         dir_pos, ref_pos = positionsViewed(t, n, 1, i, 1, 0)
         for dp in dir_pos
             (l,c) = dp
@@ -92,7 +94,9 @@ function cplexSolve(t::Matrix{Char}, views::Matrix{Int64})
             C[l,c,2] += 1
         end
 
-        @constraint(m,
+        name = "left_view " * string(i)
+
+        @constraint(m, name,
             sum((x[l,c,1] + x[l,c,3]) * C[l,c,2] +
                 (x[l,c,2] + x[l,c,3]) * C[l,c,1]
                 for l in 1:n, c in 1:n)
@@ -102,7 +106,7 @@ function cplexSolve(t::Matrix{Char}, views::Matrix{Int64})
 
     # For the Bottom side counts
     for i in 1:n
-        C = Matrix{Int64}(zeros(n, n, 2))
+        C = zeros(Int64, n, n, 2)
         dir_pos, ref_pos = positionsViewed(t, n, i, 1, 0, 1)
         for dp in dir_pos
             (l,c) = dp
@@ -112,7 +116,10 @@ function cplexSolve(t::Matrix{Char}, views::Matrix{Int64})
             (l,c) = rp
             C[l,c,2] += 1
         end
-        @constraint(m,
+        
+        name = "bottom_view " * string(i)
+
+        @constraint(m, name,
             sum((x[l,c,1] + x[l,c,3]) * C[l,c,2] +
                 (x[l,c,2] + x[l,c,3]) * C[l,c,1]
                 for l in 1:n, c in 1:n)
@@ -122,7 +129,7 @@ function cplexSolve(t::Matrix{Char}, views::Matrix{Int64})
         
     # For the Right side counts
     for i in 1:n
-        C = Matrix{Int64}(zeros(n, n, 2))
+        C = zeros(Int64, n, n, 2)
         dir_pos, ref_pos = positionsViewed(t, n, n, i, -1, 0)
         for dp in dir_pos
             (l,c) = dp
@@ -133,7 +140,9 @@ function cplexSolve(t::Matrix{Char}, views::Matrix{Int64})
             C[l,c,2] += 1
         end
 
-        @constraint(m,
+        name = "right_view " * string(i)
+
+        @constraint(m, name,
             sum((x[l,c,1] + x[l,c,3]) * C[l,c,2] +
                 (x[l,c,2] + x[l,c,3]) * C[l,c,1]
                 for l in 1:n, c in 1:n)
@@ -143,7 +152,7 @@ function cplexSolve(t::Matrix{Char}, views::Matrix{Int64})
         
     # For the Up side counts
     for i in 1:n
-        C = Matrix{Int64}(zeros(n, n, 2))
+        C = zeros(Int64, n, n, 2)
         dir_pos, ref_pos = positionsViewed(t, n, i, n, 0, -1)
         for dp in dir_pos
             (l,c) = dp
@@ -154,16 +163,15 @@ function cplexSolve(t::Matrix{Char}, views::Matrix{Int64})
             C[l,c,2] += 1
         end
         
-        @constraint(m,
+        name = "up_view " * string(i)
+
+        @constraint(m, name,
             sum((x[l,c,1] + x[l,c,3]) * C[l,c,2] +
                 (x[l,c,2] + x[l,c,3]) * C[l,c,1]
                 for l in 1:n, c in 1:n)
-            == views[4, i]
+            == views[4, i],
         )
     end
-
-    # TODO
-    println("In file resolution.jl, in method cplexSolve(), TODO: fix input and output, define the model")
 
     # Start a chronometer
     start = time()
@@ -174,7 +182,7 @@ function cplexSolve(t::Matrix{Char}, views::Matrix{Int64})
     # Return:
     # 1 - true if an optimum is found
     # 2 - the resolution time
-    return JuMP.primal_status(m) == JuMP.MathOptInterface.FEASIBLE_POINT, time() - start
+    return JuMP.primal_status(m) == MOI.FEASIBLE_POINT, time() - start
     
 end
 
