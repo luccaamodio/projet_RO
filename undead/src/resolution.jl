@@ -14,16 +14,16 @@ function positionsViewed(t::Matrix{Char}, n::Int64, x::Int64, y::Int64, dx::Int6
     direct_positions = Vector{Tuple{Int64, Int64}}()
     reflected_positions = Vector{Tuple{Int64, Int64}}()
     while 1 <= x <= n && 1 <= y <= n
-        if t[x, y] == 'b'
-            reflected = true
-            temp = dx
-            dx = dy
-            dy = temp
-        elseif t[x, y] == 'c'
+        if t[y, x] == 'b'
             reflected = true
             temp = dx
             dx = -dy
             dy = -temp
+        elseif t[y, x] == 'c'
+            reflected = true
+            temp = dx
+            dx = dy
+            dy = temp
         else
             if reflected
                 push!(reflected_positions, (x, y))
@@ -52,7 +52,7 @@ function cplexSolve(t::Matrix{Char}, views::Matrix{Int64})
     # x[i, j, 1] = 1 if cell (i, j) is a ghost
     # x[i, j, 2] = 1 if cell (i, j) is a vampire
     # x[i, j, 3] = 1 if cell (i, j) is a monster
-    @variable(m, x[1:n, 1:n, 1:3], Bin)
+    @variable(m, X[1:n, 1:n, 1:3], Bin)
 
     # les positions des miroir ne peuvent avoir aucune valeur
     # toutes les positions non miroir ne peuvent avoir qu'une valeur
@@ -61,9 +61,9 @@ function cplexSolve(t::Matrix{Char}, views::Matrix{Int64})
     for l in 1:n
         for c in 1:n
             if t[l, c] == 'b' || t[l, c] == 'c'
-                @constraint(m, [k in 1:3], x[l,c,k] == 0)
+                @constraint(m, sum(X[l, c, i] for i in 1:3) == 0)
             else
-                @constraint(m, sum(x[l, c, i] for i in 1:3) == 1)
+                @constraint(m, sum(X[l, c, i] for i in 1:3) == 1)
             end
         end
     end
@@ -86,42 +86,38 @@ function cplexSolve(t::Matrix{Char}, views::Matrix{Int64})
         C = zeros(Int64, n, n, 2)
         dir_pos, ref_pos = positionsViewed(t, n, 1, i, 1, 0)
         for dp in dir_pos
-            (l,c) = dp
-            C[l,c,1] += 1
+            (x,y) = dp
+            C[y,x,1] += 1
         end
         for rp in ref_pos
-            (l,c) = rp
-            C[l,c,2] += 1
+            (x,y) = rp
+            C[y,x,2] += 1
         end
 
-        name = "left_view " * string(i)
-
-        @constraint(m, name,
-            sum((x[l,c,1] + x[l,c,3]) * C[l,c,2] +
-                (x[l,c,2] + x[l,c,3]) * C[l,c,1]
+        @constraint(m,
+            sum((X[l,c,1] + X[l,c,3]) * C[l,c,2] +
+                (X[l,c,2] + X[l,c,3]) * C[l,c,1]
                 for l in 1:n, c in 1:n)
             == views[1, i]
         )
     end
 
-    # For the Bottom side counts
+    # For the Up side counts
     for i in 1:n
         C = zeros(Int64, n, n, 2)
         dir_pos, ref_pos = positionsViewed(t, n, i, 1, 0, 1)
         for dp in dir_pos
-            (l,c) = dp
-            C[l,c,1] += 1
+            (x,y) = dp
+            C[y,x,1] += 1
         end
         for rp in ref_pos
-            (l,c) = rp
-            C[l,c,2] += 1
+            (x,y) = rp
+            C[y,x,2] += 1
         end
-        
-        name = "bottom_view " * string(i)
 
-        @constraint(m, name,
-            sum((x[l,c,1] + x[l,c,3]) * C[l,c,2] +
-                (x[l,c,2] + x[l,c,3]) * C[l,c,1]
+        @constraint(m,
+            sum((X[l,c,1] + X[l,c,3]) * C[l,c,2] +
+                (X[l,c,2] + X[l,c,3]) * C[l,c,1]
                 for l in 1:n, c in 1:n)
             == views[2, i]
         )
@@ -132,42 +128,38 @@ function cplexSolve(t::Matrix{Char}, views::Matrix{Int64})
         C = zeros(Int64, n, n, 2)
         dir_pos, ref_pos = positionsViewed(t, n, n, i, -1, 0)
         for dp in dir_pos
-            (l,c) = dp
-            C[l,c,1] += 1
+            (x,y) = dp
+            C[y,x,1] += 1
         end
         for rp in ref_pos
-            (l,c) = rp
-            C[l,c,2] += 1
+            (x,y) = rp
+            C[y,x,2] += 1
         end
 
-        name = "right_view " * string(i)
-
-        @constraint(m, name,
-            sum((x[l,c,1] + x[l,c,3]) * C[l,c,2] +
-                (x[l,c,2] + x[l,c,3]) * C[l,c,1]
+        @constraint(m,
+            sum((X[l,c,1] + X[l,c,3]) * C[l,c,2] +
+                (X[l,c,2] + X[l,c,3]) * C[l,c,1]
                 for l in 1:n, c in 1:n)
             == views[3, i]
         )
     end
         
-    # For the Up side counts
+    # For the Bottom side counts
     for i in 1:n
         C = zeros(Int64, n, n, 2)
         dir_pos, ref_pos = positionsViewed(t, n, i, n, 0, -1)
         for dp in dir_pos
-            (l,c) = dp
-            C[l,c,1] += 1
+            (x,y) = dp
+            C[y,x,1] += 1
         end
         for rp in ref_pos
-            (l,c) = rp
-            C[l,c,2] += 1
+            (x,y) = rp
+            C[y,x,2] += 1
         end
-        
-        name = "up_view " * string(i)
 
-        @constraint(m, name,
-            sum((x[l,c,1] + x[l,c,3]) * C[l,c,2] +
-                (x[l,c,2] + x[l,c,3]) * C[l,c,1]
+        @constraint(m,
+            sum((X[l,c,1] + X[l,c,3]) * C[l,c,2] +
+                (X[l,c,2] + X[l,c,3]) * C[l,c,1]
                 for l in 1:n, c in 1:n)
             == views[4, i],
         )

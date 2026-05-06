@@ -29,23 +29,23 @@ function generateInstance(n::Int64, density::Float64)
         (x, y) = pop!(positions)
         mirror_seed = rand() # direction draft
         if mirror_seed < 0.5
-            t[x, y] = 'b'
+            t[y, x] = 'b'
         else
-            t[x, y] = 'c'
+            t[y, x] = 'c'
         end
     end
     
     for fantasma in 1:fantasmas
         (x, y) = pop!(positions)
-        t[x, y] = 'f'
+        t[y, x] = 'f'
     end
     for monster in 1:monsters
         (x, y) = pop!(positions)
-        t[x, y] = 'm'
+        t[y, x] = 'm'
     end
     for vampire in 1:vampires
         (x, y) = pop!(positions)
-        t[x, y] = 'v'
+        t[y, x] = 'v'
     end
 
     views = []
@@ -53,11 +53,11 @@ function generateInstance(n::Int64, density::Float64)
     for i in 1:n
         # Left side count line
         views[1, i] = countCharacter(t, n, 1, i, 1, 0)
-        # Bottom side count line
+        # Up side count line
         views[2, i] = countCharacter(t, n, i, 1, 0, 1)
         # Right side count line
         views[3, i] = countCharacter(t, n, n, i, -1, 0)
-        # Up side count line
+        # Bottom side count line
         views[4, i] = countCharacter(t, n, i, n, 0, -1)
     end
     return t, views
@@ -68,23 +68,23 @@ function countCharacter(t::Matrix{Char}, n::Int64, x::Int64, y::Int64, dx::Int64
     reflected = false
     count = 0
     while 1 <= x <= n && 1 <= y <= n
-        if t[x, y] == 'b'
-            reflected = true
-            temp = dx
-            dx = dy
-            dy = temp
-        elseif t[x, y] == 'c'
+        if t[y, x] == 'b'
             reflected = true
             temp = dx
             dx = -dy
             dy = -temp
+        elseif t[y, x] == 'c'
+            reflected = true
+            temp = dx
+            dx = dy
+            dy = temp
         else
             if reflected
-                if t[x, y] == 'f' || t[x, y] == 'z'
+                if t[y, x] == 'f' || t[y, x] == 'm'
                     count += 1
                 end
             else
-                if t[x, y] == 'm' || t[x, y] == 'z'
+                if t[y, x] == 'v' || t[y, x] == 'm'
                     count += 1
                 end
             end
@@ -93,7 +93,7 @@ function countCharacter(t::Matrix{Char}, n::Int64, x::Int64, y::Int64, dx::Int64
         y += dy
     end
 
-    return Char(count)
+    return count
 
 end
 
@@ -106,7 +106,7 @@ function generateDataSet()
 
     # For each grid size considered
     #for size in [4, 9, 16, 25]
-    for size in [16]
+    for size in [4]
 
         # For each grid density considered
         #for density in 0.1:0.2:0
