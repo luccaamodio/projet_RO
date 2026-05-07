@@ -16,9 +16,9 @@ function generateInstance(n::Int64, density::Float64)
     t = []
     t = Matrix{Char}(undef, n, n)
     # Drafts the numbers of each character
-    mirrors = rand(n^2/8:n^2/3)
-    vampires = rand(0:n^2 - mirrors)
-    monsters = rand(0:n^2 - mirrors - vampires)
+    mirrors = round(Int, density * n^2)
+    vampires = round(Int, (n^2 - mirrors)/3)
+    monsters = vampires
     fantasmas = n^2 - mirrors - vampires - monsters
 
     positions = [(i,j) for i in 1:n for j in 1:n]
@@ -105,12 +105,10 @@ Remark: a grid is generated only if the corresponding output file does not alrea
 function generateDataSet()
 
     # For each grid size considered
-    #for size in [4, 9, 16, 25]
-    for size in [4]
+    for size in [4, 9, 16, 25]
 
         # For each grid density considered
-        #for density in 0.1:0.2:0
-        for density in 0.1
+        for density in 0.1:0.2:0.3
 
             # Generate 10 instances
             for instance in 1:10

@@ -263,7 +263,7 @@ Prerequisites:
 """
 function performanceDiagram(outputFile::String)
 
-    resultFolder = "../res/"
+    resultFolder = "./undead/res/"
     
     # Maximal number of files in a subfolder
     maxSize = 0
@@ -318,6 +318,9 @@ function performanceDiagram(outputFile::String)
             for resultFile in filter(x->occursin(".txt", x), readdir(path))
 
                 fileCount += 1
+
+                fullpath = joinpath(path, resultFile)
+                solveTime, isOptimal = readResult(fullpath)
 
                 if isOptimal
                     results[folderCount, fileCount] = solveTime
@@ -380,17 +383,47 @@ function performanceDiagram(outputFile::String)
         append!(x, maxSolveTime)
         append!(y, currentId - 1)
 
-        # If it is the first subfolder
-        if dim == 1
+        p = plot(
+            xlabel = "Time (s)",
+            ylabel = "Solved instances",
+            legend = :bottomright
+        )
 
-            # Draw a new plot
-            plot(x, y, label = folderName[dim], legend = :bottomright, xaxis = "Time (s)", yaxis = "Solved instances",linewidth=3)
+        for dim in 1:size(results, 1)
 
-        # Otherwise 
-        else
-            # Add the new curve to the created plot
-            savefig(plot!(x, y, label = folderName[dim], linewidth=3), outputFile)
-        end 
+            x = Float64[]
+            y = Float64[]
+
+            previousX = 0
+            currentId = 1
+
+            push!(x, 0.0)
+            push!(y, 0.0)
+
+            while currentId <= size(results, 2) && results[dim, currentId] != Inf
+
+                while currentId <= size(results, 2) && results[dim, currentId] == previousX
+                    currentId += 1
+                end
+
+                push!(x, previousX)
+                push!(y, currentId - 1)
+
+                if currentId <= size(results, 2) && results[dim, currentId] != Inf
+                    push!(x, results[dim, currentId])
+                    push!(y, currentId - 1)
+                end
+
+                previousX = currentId <= size(results, 2) ? results[dim, currentId] : previousX
+            end
+
+            push!(x, maxSolveTime)
+            push!(y, currentId - 1)
+
+            plot!(p, x, y, label = folderName[dim], linewidth=3)
+        end
+
+        savefig(p, outputFile)
     end
 end
 
