@@ -171,10 +171,16 @@ function cplexSolve(t::Matrix{Char}, views::Matrix{Int64})
     # Solve the model
     optimize!(m)
 
+    # # Return:
+    # # 1 - true if an optimum is found
+    # # 2 - the resolution time
+    # return JuMP.primal_status(m) == MOI.FEASIBLE_POINT, X, time() - start
+
     # Return:
     # 1 - true if an optimum is found
-    # 2 - the resolution time
-    return JuMP.primal_status(m) == MOI.FEASIBLE_POINT, time() - start
+    # 2 - the model variable
+    # 3 - the resolution time
+    return JuMP.primal_status(m) == MOI.FEASIBLE_POINT, X, time() - start
     
 end
 
@@ -197,8 +203,8 @@ Remark: If an instance has previously been solved (either by cplex or the heuris
 """
 function solveDataSet()
 
-    dataFolder = "../data/"
-    resFolder = "../res/"
+    dataFolder = "./undead/data/"
+    resFolder = "./undead/res/"
 
     # Array which contains the name of the resolution methods
     resolutionMethod = ["cplex"]
@@ -222,11 +228,8 @@ function solveDataSet()
     for file in filter(x->occursin(".txt", x), readdir(dataFolder))  
         
         println("-- Resolution of ", file)
-        readInputFile(dataFolder * file)
+        t, views = readInputFile(dataFolder * file)
 
-        # TODO
-        println("In file resolution.jl, in method solveDataSet(), TODO: read value returned by readInputFile()")
-        
         # For each resolution method
         for methodId in 1:size(resolutionMethod, 1)
             
@@ -243,16 +246,13 @@ function solveDataSet()
                 # If the method is cplex
                 if resolutionMethod[methodId] == "cplex"
                     
-                    # TODO 
-                    println("In file resolution.jl, in method solveDataSet(), TODO: fix cplexSolve() arguments and returned values")
-                    
                     # Solve it and get the results
-                    isOptimal, resolutionTime = cplexSolve()
+                    isOptimal, X, resolutionTime = cplexSolve(t, views)
                     
                     # If a solution is found, write it
                     if isOptimal
-                        # TODO
-                        println("In file resolution.jl, in method solveDataSet(), TODO: write cplex solution in fout") 
+                        t_sol = XtoBoard(X, t)
+                        writeSolution(fout, t_sol, views) 
                     end
 
                 # If the method is one of the heuristics
@@ -296,9 +296,42 @@ function solveDataSet()
 
 
             # Display the results obtained with the method on the current instance
-            include(outputFile)
             println(resolutionMethod[methodId], " optimal: ", isOptimal)
             println(resolutionMethod[methodId], " time: " * string(round(solveTime, sigdigits=2)) * "s\n")
         end         
     end 
+end
+
+function XtoBoard(X::Array{VariableRef,3}, t::Matrix{Char})
+
+    n = size(X, 1)
+
+    t_sol = copy(t)
+
+    for l in 1:n
+        for c in 1:n
+
+            if t[l,c] == 'c'
+                t_sol[l,c] = '\\'
+
+            elseif t[l,c] == 'b'
+                t_sol[l,c] = '/'
+
+            elseif value(X[l,c,1]) > TOL
+                t_sol[l,c] = 'f'
+
+            elseif value(X[l,c,2]) > TOL
+                t_sol[l,c] = 'v'
+
+            elseif value(X[l,c,3]) > TOL
+                t_sol[l,c] = 'm'
+
+            else
+                t_sol[l,c] = '?'
+            end
+
+        end
+    end
+
+    return t_sol
 end

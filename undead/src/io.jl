@@ -4,6 +4,8 @@ using JuMP
 using Plots
 import GR
 
+TOL = 0.00001
+
 """
 Save a grid in a text file
 
@@ -96,6 +98,156 @@ function readInputFile(inputFile::String)
     return t, views
 end
 
+"""
+Display a grid represented by a 2-dimensional array
+
+Argument:
+- t: array of size n*n with values in [0, n] (0 if the cell is empty)
+"""
+function displayGrid(t::Matrix{Char}, views::Matrix{Int64})
+
+    n = size(t, 1)
+
+    upper = views[2,:]
+    left = views[1,:]
+    right = views[3,:]
+    bottom = views[4,:]
+    
+    # Upper line
+
+    print("    ")
+
+    for c in 1:n
+        print(" " ,upper[c], "  ")
+    end
+
+    println("\n")
+
+    # Main grid
+
+    for l in 1:n
+
+        # Linha horizontal
+        print("   ")
+        println("+" * "---+"^n)
+
+        # Left value
+        print(left[l], "  ")
+
+        # Conteúdo da linha
+        for c in 1:n
+
+            print("| ")
+
+            if t[l,c] == 'b'
+                print("/")
+            elseif t[l,c] == 'c'
+                print("\\")
+            else
+                print(" ")
+            end
+
+            print(" ")
+        end
+
+        # Fecha a linha + valor da direita
+        println("| ", right[l])
+
+    end
+
+    # Última linha horizontal
+    print("   ")
+    println("+" * "---+"^n)
+
+    # Bottom line
+
+    print("\n    ")
+
+    for c in 1:n
+        print(" " , bottom[c], "  ")
+    end
+
+    println()
+end
+
+"""
+Display cplex solution
+
+Argument
+- x: 3-dimensional variables array such that x[i, j, k] = 1 if cell (i, j) has value k
+"""
+function displaySolution(x::Array{VariableRef,3}, t::Matrix{Char}, views::Matrix{Int64})
+
+    n = size(x, 1)
+    
+    upper = views[2,:]
+    left = views[1,:]
+    right = views[3,:]
+    bottom = views[4,:]
+    
+    # Upper line
+
+    print("    ")
+
+    for c in 1:n
+        print(" " ,upper[c], "  ")
+    end
+
+    println("\n")
+
+    # Main grid
+
+    for l in 1:n
+
+        # Linha horizontal
+        print("   ")
+        println("+" * "---+"^n)
+
+        # Left value
+        print(left[l], "  ")
+
+        # Conteúdo da linha
+        for c in 1:n
+
+            print("| ")
+
+            if value(x[l,c,1]) > TOL
+                print("f")
+            elseif value(x[l,c,2]) > TOL
+                print("v")
+            elseif value(x[l,c,3]) > TOL
+                print("m")
+            elseif t[l,c] == 'b'
+                print("/")
+            elseif t[l,c] == 'c'
+                print("\\")
+            else
+                print("?")
+            end
+
+            print(" ")
+        end
+
+        # Fecha a linha + valor da direita
+        println("| ", right[l])
+
+    end
+
+    # Última linha horizontal
+    print("   ")
+    println("+" * "---+"^n)
+
+    # Bottom line
+
+    print("\n    ")
+
+    for c in 1:n
+        print(" " , bottom[c], "  ")
+    end
+
+    println()
+end
+
 
 """
 Create a pdf file which contains a performance diagram associated to the results of the ../res folder
@@ -166,7 +318,6 @@ function performanceDiagram(outputFile::String)
             for resultFile in filter(x->occursin(".txt", x), readdir(path))
 
                 fileCount += 1
-                include(path * "/" * resultFile)
 
                 if isOptimal
                     results[folderCount, fileCount] = solveTime
@@ -241,7 +392,58 @@ function performanceDiagram(outputFile::String)
             savefig(plot!(x, y, label = folderName[dim], linewidth=3), outputFile)
         end 
     end
+end
+
+"""
+Write a solution in an output stream
+
+Arguments
+- fout: the output stream (usually an output file)
+- t: 2-dimensional array of size n*n
+"""
+function writeSolution(fout::IOStream, t::Matrix{Char}, views::Matrix{Int64})
+
+    n = size(t, 1)
+
+    # For each cell (l, c) of the grid
+    for l in 1:n
+        for c in 1:n
+            print(fout, t[l, c])
+            if c != n
+                print(fout, ",")
+            else
+                println(fout, "")
+            end
+        end
+    end
+
+    # For each cell (4, c) of the grid
+    for l in 1:4
+        for c in 1:n
+            print(fout, views[l, c])
+            if c != n
+                print(fout, ",")
+            else
+                println(fout, "")
+            end
+        end
+    end
 end 
+
+function readResult(path::String)
+    solveTime = NaN
+    isOptimal = false
+
+    for line in eachline(path)
+        if occursin("solveTime", line)
+            solveTime = parse(Float64, split(line, "=")[2])
+        elseif occursin("isOptimal", line)
+            isOptimal = occursin("true", lowercase(line))
+        end
+    end
+
+    return solveTime, isOptimal
+end
 
 """
 Create a latex file which contains an array with the results of the ../res folder.
@@ -256,10 +458,10 @@ Prerequisites:
 - Each text file contains a variable "solveTime" and a variable "isOptimal"
 """
 function resultsArray(outputFile::String)
-    
-    resultFolder = "../res/"
-    dataFolder = "../data/"
-    
+
+    resultFolder = "./undead/res/"
+    dataFolder = "./undead/data/"
+
     # Maximal number of files in a subfolder
     maxSize = 0
 
@@ -293,12 +495,12 @@ function resultsArray(outputFile::String)
 
     header = raw"""
 \begin{center}
-\renewcommand{\arraystretch}{1.4} 
- \begin{tabular}{l"""
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{l"""
 
-    # Name of the subfolder of the result folder (i.e, the resolution methods used)
+# Name of the subfolder of the result folder (i.e, the resolution methods used)
     folderName = Array{String, 1}()
-
+    
     # List of all the instances solved by at least one resolution method
     solvedInstances = Array{String, 1}()
 
@@ -306,7 +508,7 @@ function resultsArray(outputFile::String)
     for file in readdir(resultFolder)
 
         path = resultFolder * file
-        
+
         # If it is a subfolder
         if isdir(path)
 
@@ -368,7 +570,7 @@ function resultsArray(outputFile::String)
         if rem(id, maxInstancePerPage) == 0
             println(fout, footer, "\\newpage")
             println(fout, header)
-        end 
+        end
 
         # Replace the potential underscores '_' in file names
         print(fout, replace(solvedInstance, "_" => "\\_"))
@@ -381,14 +583,14 @@ function resultsArray(outputFile::String)
             # If the instance has been solved by this method
             if isfile(path)
 
-                include(path)
+                solveTime, isOptimal = readResult(path)
 
                 println(fout, " & ", round(solveTime, digits=2), " & ")
 
                 if isOptimal
                     println(fout, "\$\\times\$")
-                end 
-                
+                end
+
             # If the instance has not been solved by this method
             else
                 println(fout, " & - & - ")
@@ -406,5 +608,5 @@ function resultsArray(outputFile::String)
     println(fout, "\\end{document}")
 
     close(fout)
-    
-end 
+
+end
