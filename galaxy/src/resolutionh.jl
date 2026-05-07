@@ -101,8 +101,8 @@ Solve all instances in the data folder using only the Heuristic
 """
 function solveDataSet()
 
-    dataFolder = "../data/"
-    resFolder = "../res/"
+    dataFolder = "./galaxy/data/"
+    resFolder = "./galaxy/res/"
     
     # Specific folder for the heuristic
     heurFolder = resFolder * "heuristique/"

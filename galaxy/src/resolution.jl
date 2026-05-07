@@ -44,8 +44,8 @@ function cplexSolve(n::Int64, centers::Vector{Tuple{Float64, Float64}})
         for l in 1:n
             for c in 1:n
                 # Diametrically opposite cell relative to the center (cx,cy)
-                lp = round(Int, 2.0 * cx - l)
-                cp = round(Int, 2.0 * cy - c)
+                lp = round(Int, 2.0 * cx - l + 1) # Adds 1 because of the coordinates of the squares
+                cp = round(Int, 2.0 * cy - c + 1) # Adds 1 because of the coordinates of the squares
                 
                 if lp < 1 || lp > n || cp < 1 || cp > n
                     # Phantom constraint: If the symmetric cell is outside the grid, x = 0
@@ -80,7 +80,7 @@ function cplexSolve(n::Int64, centers::Vector{Tuple{Float64, Float64}})
                 if c < n @constraint(m, f[e, l, c, 4] <= M * x[e, l, c+1]) else @constraint(m, f[e, l, c, 4] == 0) end # Right
 
                 # Checks if the center point is "touching" this cell (it acts as the water source)
-                is_root = abs(cx - l) <= 0.51 && abs(cy - c) <= 0.51
+                is_root = abs(cx - (l-0.5)) <= 0.51 && abs(cy - (c-0.5)) <= 0.51
 
                 if is_root
                     # The roots always belong to the galaxy
@@ -141,8 +141,8 @@ Remark: If an instance has previously been solved it will not be solved again
 """
 function solveDataSet()
 
-    dataFolder = "../data/"
-    resFolder = "../res/"
+    dataFolder = "./galaxy/data/"
+    resFolder = "./galaxy/res/"
     
     # Specific folder for CPLEX
     cplexFolder = resFolder * "cplex/"
