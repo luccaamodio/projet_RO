@@ -45,7 +45,7 @@ function readInputFile(inputFile::String)
     # First line contains n
     n = parse(Int64, data[1])
     
-    # List of the coordenades (x, y) of the centers
+    # List of the coordenates (x, y) of the centers
     centers = Vector{Tuple{Float64, Float64}}()
 
     # For each line of the input file (unless the first)
@@ -62,6 +62,99 @@ function readInputFile(inputFile::String)
     return n, centers
 end
 
+"""
+Display a Galaxy instance from a file
+
+Format:
+- n: size o the grid
+- centers: List of the coordenates (x, y) of the centers
+"""
+function displayGalaxy(n::Int64, centers::Vector{Tuple{Float64, Float64}})
+
+    H = 2*n + 1
+    W = 2*n + 1
+
+    canvas = fill(' ', H, W)
+
+    # =========================
+    # DRAW GRID
+    # =========================
+
+    # intersections
+    for l in 1:2:H
+        for c in 1:2:W
+            canvas[l,c] = '+'
+        end
+    end
+
+    # horizontal edges
+    for l in 1:2:H
+        for c in 2:2:W-1
+            canvas[l,c] = '-'
+        end
+    end
+
+    # vertical edges
+    for l in 2:2:H-1
+        for c in 1:2:W
+            canvas[l,c] = '|'
+        end
+    end
+
+    # =========================
+    # DRAW CENTERS
+    # =========================
+    for (l0, c0) in centers
+
+        l = Int(round(2*l0+1))
+        c = Int(round(2*c0+1))
+
+        canvas[l,c] = '*'
+    end
+
+    # =========================
+    # PRINT
+    # =========================
+    for l in 1:H
+        for c in 1:W
+            print(canvas[l,c], ' ')
+        end
+        println()
+    end
+end
+
+"""
+Display cplex solution
+
+Argument
+- x: 3-dimensional variables array such that x[i, j, k] = 1 if cell (i, j) has value k
+"""
+function displaySolution(solution_matrix::Matrix{Int64})
+    n = size(solution_matrix, 1)
+
+    # Horizontal separator between rows l and l+1 (or border if l=0 or l=n)
+    function hline(l::Int)
+        row = "+"
+        for c in 1:n
+            above = l == 0 ? -1 : solution_matrix[l, c]
+            below = l == n ? -1 : solution_matrix[l+1, c]
+            row *= (above != below ? "----+" : "    +")
+        end
+        return row
+    end
+
+    println(hline(0))
+    for l in 1:n
+        row = "|"
+        for c in 1:n
+            row *= rpad(solution_matrix[l, c], 3) * " "
+            right = c == n ? -1 : solution_matrix[l, c+1]
+            row *= (solution_matrix[l, c] != right ? "|" : " ")
+        end
+        println(row)
+        println(hline(l))
+    end
+end
 
 """
 Create a pdf file which contains a performance diagram associated to the results of the ../res folder
@@ -77,7 +170,7 @@ Prerequisites:
 """
 function performanceDiagram(outputFile::String)
 
-    resultFolder = "../res/"
+    resultFolder = "./galaxy/res/"
     
     # Maximal number of files in a subfolder
     maxSize = 0
@@ -223,8 +316,8 @@ Prerequisites:
 """
 function resultsArray(outputFile::String)
     
-    resultFolder = "../res/"
-    dataFolder = "../data/"
+    resultFolder = "./galaxy/res/"
+    dataFolder = "./galaxy/data/"
     
     # Maximal number of files in a subfolder
     maxSize = 0
