@@ -1,0 +1,13 @@
+b,v,m,c,m,v,v,v,m
+v,m,v,v,c,b,m,f,f
+v,m,f,c,f,b,v,b,v
+m,m,m,f,m,c,b,f,b
+v,b,f,b,v,f,m,m,f
+f,b,f,m,v,c,b,b,m
+m,m,m,c,c,b,v,f,f
+v,m,f,f,b,v,f,m,b
+f,v,b,c,v,f,f,c,v
+0,10,5,9,4,4,6,7,8
+0,4,5,2,1,2,4,2,10
+5,7,5,5,7,3,2,0,4
+11,8,0,0,6,3,3,6,1

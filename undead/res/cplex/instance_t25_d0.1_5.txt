@@ -1,0 +1,31 @@
+v,v,m,m,m,v,v,v,m,m,m,f,f,v,v,m,f,v,f,m,f,\,m,f,f
+f,m,v,\,m,/,f,f,m,f,m,m,v,m,f,v,v,\,f,v,f,m,m,f,v
+m,/,m,v,/,v,v,m,v,v,f,\,m,v,v,v,f,\,f,/,v,f,m,v,v
+v,v,/,m,f,v,v,v,v,v,f,v,m,v,f,f,v,m,m,\,v,/,v,\,v
+f,v,f,v,m,f,m,m,m,v,v,f,v,m,m,f,v,m,/,v,m,/,/,f,f
+m,f,\,f,f,v,m,f,m,f,m,v,v,f,v,v,m,m,m,f,v,f,m,f,v
+f,v,v,f,f,v,m,f,m,f,v,m,v,v,m,f,f,f,v,m,\,v,v,m,m
+m,v,f,f,m,f,m,f,v,v,m,m,f,m,v,f,m,v,m,f,v,m,m,f,m
+m,v,f,/,v,v,m,m,m,m,\,v,f,/,m,m,f,f,\,v,\,v,m,f,m
+m,f,m,/,m,f,m,m,m,f,\,/,f,v,m,f,m,f,v,m,m,m,\,v,m
+m,f,m,v,v,f,f,/,v,m,m,m,f,f,m,m,v,f,m,m,v,v,m,\,v
+v,f,m,m,m,\,f,\,v,f,f,v,f,m,m,v,f,v,f,v,f,m,m,f,m
+f,v,m,m,v,v,v,m,v,f,m,m,/,f,m,v,v,v,f,f,v,v,m,/,v
+v,f,m,f,m,/,/,v,m,m,m,m,v,f,v,m,m,v,f,v,/,/,/,m,m
+f,v,v,f,m,v,v,v,m,v,v,v,m,/,v,f,f,f,m,m,f,f,f,v,m
+v,f,v,f,f,f,m,m,v,f,m,v,v,f,v,f,\,f,m,m,m,f,m,f,m
+v,v,m,f,m,m,f,v,f,/,m,v,m,f,v,v,f,f,m,v,m,v,v,/,m
+m,v,f,f,m,f,m,m,v,m,f,m,v,m,v,f,v,v,m,v,f,m,f,v,m
+f,m,\,v,v,v,/,v,v,m,m,m,m,f,f,v,f,/,m,/,v,v,\,f,/
+v,\,v,m,f,v,f,f,m,v,v,m,v,f,f,v,m,m,m,f,f,m,m,v,f
+f,f,v,v,f,f,m,v,m,m,v,\,m,m,m,v,v,v,v,m,v,f,f,m,f
+f,v,f,v,m,\,m,f,m,v,m,f,f,v,\,\,f,/,f,f,m,\,m,v,m
+f,v,f,m,m,f,m,m,f,/,m,f,f,f,v,/,v,v,f,f,m,f,m,v,v
+v,/,f,v,f,m,m,f,v,m,f,f,m,f,m,f,f,v,f,\,\,f,m,f,f
+\,v,m,f,v,m,v,m,v,m,m,f,f,v,v,v,m,v,\,v,f,m,m,m,m
+20,8,2,4,17,31,15,17,8,28,12,8,18,7,37,15,17,18,5,2,11,6,17,2,0
+24,3,3,2,26,3,21,11,23,15,11,25,13,14,23,48,17,6,13,24,6,3,19,1,22
+1,4,19,3,4,46,7,17,16,7,33,35,21,18,13,15,5,18,5,25,34,33,7,15,31
+0,15,5,27,27,5,26,25,23,18,28,7,38,13,22,6,15,9,25,15,10,4,10,7,3
+solveTime = 0.24899983406066895
+isOptimal = true

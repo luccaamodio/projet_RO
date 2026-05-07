@@ -1,0 +1,15 @@
+m,/,f,f,f,f,m,f,f
+f,f,m,v,\,f,m,m,/
+m,m,m,f,v,f,f,m,m
+f,f,/,v,m,m,f,m,m
+v,f,f,f,f,\,m,m,/
+v,m,m,m,m,m,v,m,v
+v,m,f,f,f,f,f,m,m
+f,m,f,/,v,f,f,m,m
+f,f,v,/,v,m,v,m,f
+1,6,6,3,5,9,4,6,5
+5,1,4,6,4,5,5,8,4
+9,8,6,9,3,9,4,5,4
+5,11,7,3,8,6,5,8,3
+solveTime = 0.017999887466430664
+isOptimal = true
