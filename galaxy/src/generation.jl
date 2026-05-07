@@ -1,5 +1,8 @@
-# This file contains methods to generate a data set of instances for the Galaxy puzzle
+# This file contains methods to generate a data set of instances (i.e., sudoku grids)
 using Random
+using Pkg
+Pkg.precompile()
+include("io.jl")
 
 """
 Generate an n*n grid with a given density
@@ -127,29 +130,12 @@ function generateInstance(n::Int64, density::Float64)
             if grid[l, c] == 0
                 id += 1
                 grid[l, c] = id
-                push!(centers, (Float64(l), Float64(c)))
+                push!(centers, (l-0.5, c-0.5))
             end
         end
     end
     
     return centers
-end
-
-"""
-Save the generated instance to a text file
-"""
-function saveInstance(n::Int64, centers::Vector{Tuple{Float64, Float64}}, fileName::String)
-    fout = open(fileName, "w")
-    
-    # First line is the size of the grid
-    println(fout, n)
-    
-    # Next lines are the centers (cx, cy)
-    for (cx, cy) in centers
-        println(fout, cx, ",", cy)
-    end
-    
-    close(fout)
 end
 
 """

@@ -5,6 +5,30 @@ using Plots
 import GR
 
 """
+Save a grid in a text file
+
+Argument
+- n: size of the board
+- centers: array with the centers
+- outputFile: path of the output file
+"""
+function saveInstance(n::Int64, centers::Vector{Tuple{Float64, Float64}}, outputFile::String)
+
+    # Open the output file
+    writer = open(outputFile, "w")
+    
+    # First line is the size of the grid
+    println(writer, n)
+    
+    # Next lines are the centers (cx, cy)
+    for (cx, cy) in centers
+        println(writer, cx, ",", cy)
+    end
+    
+    close(writer)
+end
+
+"""
 Read an instance from an input file
 
 - Argument:
@@ -18,30 +42,23 @@ function readInputFile(inputFile::String)
     data = readlines(datafile)
     close(datafile)
 
-    # A primeira linha contém o tamanho do grid (N)
+    # First line contains n
     n = parse(Int64, data[1])
     
-    # Lista para armazenar as coordenadas (x, y) dos centros das galáxias
+    # List of the coordenades (x, y) of the centers
     centers = Vector{Tuple{Float64, Float64}}()
 
-    # For each line of the input file (da segunda linha em diante)
+    # For each line of the input file (unless the first)
     for line in data[2:end]
         
-        # Ignora linhas em branco por segurança
-        if strip(line) != ""
-            # Divide a linha pela vírgula
-            coords = split(line, ",")
-            
-            # Converte para Float64 (já que no Galaxy os centros podem ser 1.5, 2.0, etc.)
-            cx = parse(Float64, coords[1])
-            cy = parse(Float64, coords[2])
-            
-            # Adiciona na lista
-            push!(centers, (cx, cy))
-        end
+        coords = split(line, ",")
+        
+        cx = parse(Float64, coords[1])
+        cy = parse(Float64, coords[2])
+        
+        push!(centers, (cx, cy))
     end
 
-    # Retorna o tamanho do grid e a lista de centros
     return n, centers
 end
 
