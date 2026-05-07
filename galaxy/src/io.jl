@@ -18,14 +18,31 @@ function readInputFile(inputFile::String)
     data = readlines(datafile)
     close(datafile)
 
-    # For each line of the input file
-    for line in data
+    # A primeira linha contém o tamanho do grid (N)
+    n = parse(Int64, data[1])
+    
+    # Lista para armazenar as coordenadas (x, y) dos centros das galáxias
+    centers = Vector{Tuple{Float64, Float64}}()
 
-        # TODO
-        println("In file io.jl, in method readInputFile(), TODO: read a line of the input file")
-
+    # For each line of the input file (da segunda linha em diante)
+    for line in data[2:end]
+        
+        # Ignora linhas em branco por segurança
+        if strip(line) != ""
+            # Divide a linha pela vírgula
+            coords = split(line, ",")
+            
+            # Converte para Float64 (já que no Galaxy os centros podem ser 1.5, 2.0, etc.)
+            cx = parse(Float64, coords[1])
+            cy = parse(Float64, coords[2])
+            
+            # Adiciona na lista
+            push!(centers, (cx, cy))
+        end
     end
 
+    # Retorna o tamanho do grid e a lista de centros
+    return n, centers
 end
 
 
@@ -339,4 +356,4 @@ function resultsArray(outputFile::String)
 
     close(fout)
     
-end 
+end
