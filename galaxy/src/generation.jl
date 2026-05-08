@@ -19,9 +19,7 @@ function generateInstance(n::Int64, density::Float64)
     # Calculate how many starting seeds to plant (e.g., 10% of the grid size)
     num_seeds = max(1, round(Int, density*n^2))
     
-    # ==========================================
-    # 1. PLANT SEEDS PHASE
-    # ==========================================
+    # 1 - Attribute the first centers
     for id in 1:num_seeds
         
         # Find all empty cells
@@ -33,7 +31,7 @@ function generateInstance(n::Int64, density::Float64)
         # Pick a random empty cell
         l, c = rand(empty_cells)
         
-        # Randomly choose the shape of the seed (1x1, 1x2, 2x1, or 2x2)
+        # Randomly choose the shape initial galaxy (1x1, 1x2, 2x1, or 2x2)
         seed_type = rand(1:4)
         
         if seed_type == 4 && l < n && c < n && grid[l, c+1] == 0 && grid[l+1, c] == 0 && grid[l+1, c+1] == 0
@@ -63,15 +61,14 @@ function generateInstance(n::Int64, density::Float64)
         end
     end
     
-    # ==========================================
-    # 2. GROW PHASE (Expand symmetrically)
-    # ==========================================
+    # 2 - Expand symmetrically
     changed = true
     while changed
         changed = false
         
         # Try to grow each galaxy one by one
         for id in 1:length(centers)
+            # Get the galaxy center for mirroring later
             cx, cy = centers[id]
             
             # Find empty cells that are touching this galaxy
@@ -121,9 +118,7 @@ function generateInstance(n::Int64, density::Float64)
         end
     end
     
-    # ==========================================
-    # 3. FILL PHASE (Leftovers become 1x1)
-    # ==========================================
+    # 3. Leftovers become 1x1 galaxies
     id = length(centers)
     for l in 1:n
         for c in 1:n
@@ -146,14 +141,14 @@ Remark: a grid is generated only if the corresponding output file does not alrea
 function generateDataSet()
 
     # For each grid size considered
-    for size in [4, 9, 16, 25]
+    for size in [4, 9, 16]
 
         # For each grid density considered
         for density in 0.1:0.2:0.3
 
             # Generate 10 instances
             # for instance in 1:10
-            for instance in 1:2
+            for instance in 1:10
 
                 fileName = "galaxy/data/instance_t" * string(size) * "_d" * string(density) * "_" * string(instance) * ".txt"
                 

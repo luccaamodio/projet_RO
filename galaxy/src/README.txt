@@ -23,6 +23,12 @@ include("galaxy\\src\\io.jl")
 include("galaxy\\src\\resolution.jl")
 solveDataSet()
 
+Résoudre toutes les instances de data avec CPLEX avec callback
+
+include("galaxy\\src\\io.jl")
+include("galaxy\\src\\resolutionWithCallback.jl")
+solveDataSetWithCallback()
+
 Résoudre toutes les instances de data avec l'heuristique
 
 include("galaxy\\src\\io.jl")

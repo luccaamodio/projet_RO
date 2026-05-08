@@ -17,11 +17,9 @@ function cplexSolve(n::Int64, centers::Vector{Tuple{Float64, Float64}})
     set_optimizer_attribute(m, "CPX_PARAM_SCRIND", 0)
 
     n_centers = length(centers)
-    M = n * n # Big-M: Maximum flow (total grid size)
+    M = n * n # Maximum flow (total grid size)
 
-    # ==========================
-    # 1. VARIABLES
-    # ==========================
+    # 1. Variables
     # x[e, l, c]: 1 if cell (l,c) belongs to galaxy 'e'
     @variable(m, x[1:n_centers, 1:n, 1:n], Bin)
     
@@ -29,9 +27,7 @@ function cplexSolve(n::Int64, centers::Vector{Tuple{Float64, Float64}})
     # Directions: 1=Up, 2=Down, 3=Left, 4=Right
     @variable(m, f[1:n_centers, 1:n, 1:n, 1:4] >= 0)
 
-    # ==========================
-    # 2. PARTITION AND SYMMETRY CONSTRAINTS
-    # ==========================
+    # 2. Linear constraints
     for l in 1:n
         for c in 1:n
             # Each cell must belong to exactly one galaxy
@@ -48,19 +44,18 @@ function cplexSolve(n::Int64, centers::Vector{Tuple{Float64, Float64}})
                 cp = round(Int, 2.0 * cy - c + 1) # Adds 1 because of the coordinates of the squares
                 
                 if lp < 1 || lp > n || cp < 1 || cp > n
-                    # Phantom constraint: If the symmetric cell is outside the grid, x = 0
+                    # If the symmetric cell is outside the grid, x = 0, to boost speed
                     @constraint(m, x[e, l, c] == 0)
                 elseif (l, c) < (lp, cp)
-                    # Symmetry constraint: The cell and its opposite must have the same value
+                    # Symmetry - The cell and its opposite must have the same value
                     @constraint(m, x[e, l, c] - x[e, lp, cp] == 0)
                 end
             end
         end
     end
 
-    # ==========================
-    # 3. CONNECTIVITY CONSTRAINTS (NETWORK FLOW)
-    # ==========================
+    
+    # 3. Connectivity constraints (NETWORK FLOW)
     for e in 1:n_centers
         cx, cy = centers[e]
         
@@ -133,9 +128,9 @@ function cplexSolve(n::Int64, centers::Vector{Tuple{Float64, Float64}})
 end
 
 """
-Solve all the instances contained in "../data" through CPLEX
+Solve all the instances contained in dataFolder through CPLEX
 
-The results are written in "../res/cplex"
+The results are written in resFolder
 
 Remark: If an instance has previously been solved it will not be solved again
 """

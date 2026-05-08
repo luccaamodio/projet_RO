@@ -1,0 +1,8 @@
+solveTime = 0.002000093460083008
+isOptimal = true
+
+# Solved Matrix:
+6   7   2   1   
+8   9   10  1   
+11  12  3   3   
+13  14  5   4   

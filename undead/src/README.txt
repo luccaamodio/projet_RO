@@ -1,11 +1,11 @@
-Resolver uma instancia
+Résoudre une instance Undead
 
 include("undead\\src\\io.jl")
 include("undead\\src\\resolution.jl")
 t, views = readInputFile("undead\\data\\instance_t16_d0.1_1.txt")
 cplexSolve(t, views)
 
-Resolver todas as instancias
+Résoudre toutes les instances et générer des rapports
 
 include("undead\\src\\generation.jl")
 include("undead\\src\\io.jl")
