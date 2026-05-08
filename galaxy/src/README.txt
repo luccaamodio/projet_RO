@@ -3,7 +3,7 @@ Résoudre une instance Galaxy avec CPLEX
 include("galaxy\\src\\io.jl")
 include("galaxy\\src\\resolution.jl")
 n, centers = readInputFile("galaxy\\data\\teste_4x4.txt")
-cplexSolve(n, centers)
+status, resTime, solution_matrix = cplexSolve(n, centers)
 
 Résoudre une instance Galaxy avec l'heuristique
 
