@@ -141,7 +141,7 @@ Remark: a grid is generated only if the corresponding output file does not alrea
 function generateDataSet()
 
     # For each grid size considered
-    for size in [4, 9, 16]
+    for size in [4, 9, 16, 25]
 
         # For each grid density considered
         for density in 0.1:0.2:0.3
