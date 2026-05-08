@@ -1,8 +1,0 @@
-solveTime = 0.0009999275207519531
-isOptimal = true
-
-# Solved Matrix:
-5   3   1   1   
-5   3   2   2   
-5   3   6   7   
-5   8   9   4   
